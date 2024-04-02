@@ -1,0 +1,37 @@
+{
+  "nome": "joana",
+  "acoes": [
+    {
+      "nome": "ligar",
+      "objetos": ["lâmpada", "televisão", "ar-condicionado"]
+    },
+    {
+      "nome": "desligar",
+      "objetos": ["lâmpada", "televisão", "ar-condicionado"]
+    },
+    {
+      "nome": "acender",
+      "objetos": ["lâmpada"]
+    },
+    {
+      "nome": "apagar",
+      "objetos": ["lâmpada"]
+    },
+    {
+      "nome": "aumentar",
+      "objetos": ["luminosidade", "volume", "temperatura"]
+    },
+    {
+      "nome": "diminuir",
+      "objetos": ["luminosidade", "volume", "temperatura"]
+    },
+    {
+      "nome": "tocar",
+      "objetos": ["música"]
+    },
+    {
+      "nome": "parar",
+      "objetos": ["música"]
+    }
+  ]
+}
