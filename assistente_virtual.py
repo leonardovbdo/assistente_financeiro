@@ -4,156 +4,140 @@ from nltk import word_tokenize, corpus
 from threading import Thread
 import json
 
-from lampada import *
-from tocador import *
+from financeiro import *
 
 # configuracoes do assistente
-IDIOMA_CORPUS = "portuguese"
-IDIOMA_FALA = "pt-BR"
-CAMINHO_CONFIGURACAO = "config.json"
-TEMPO_DE_ESCUTA = 4
+CORPUS_LANGUAGE = "portuguese"
+DEFAULT_LANGUAGE = "pt-BR"
+CONFIG_FILE_PATH = "config.json"
+LITENING_TIME = 5
 
-ATUADORES = [
+ACTORS = [
     {
-        "nome": "lâmpada",
-        "iniciar": iniciar_lampada,
-        "parametro_de_atuacao": None,
-        "atuar": atuar_sobre_a_lampada
-    },
-    {
-        "nome": "tocador",
-        "iniciar": iniciar_tocador,
-        "parametro_de_atuacao": None,
-        "atuar": atuar_sobre_tocador
+        "name": "financeiro",
+        "initiate": create_finance_file,
+        "acting_params": None,
+        "acting": act_on_finance
     }
 ]
 
-# 1. transcricao da fala para uma string
-
-# realiza a configuracao inicial do assistente
-def iniciar():
-    iniciado, reconhecedor, palavras_de_parada, nome_do_assistente, acoes = False, None, None, None, None
+# configuracao para o assistente virtual iniciar
+def initiate():
+    deployed, recognizer, stopping_words, assistant_name, actions = False, None, None, None, None
 
     try:
-        reconhecedor = sr.Recognizer()
+        recognizer = sr.Recognizer()
 
-        palavras_de_parada = set(corpus.stopwords.words(IDIOMA_CORPUS))
+        stopping_words = set(corpus.stopwords.words(CORPUS_LANGUAGE))
 
-        with open(CAMINHO_CONFIGURACAO, "r", encoding="utf-8") as arquivo:
-            configuracao = json.load(arquivo)
+        with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as file:
+            settings = json.load(file)
 
-            nome_do_assistente = configuracao["nome"]
-            acoes = configuracao["acoes"]
+            assistant_name = settings["name"]
+            actions = settings["actions"]
 
-            arquivo.close()
+            file.close()
 
-        for atuador in ATUADORES:
-            parametro_de_atuacao = atuador["iniciar"]()
-            atuador["parametro_de_atuacao"] = parametro_de_atuacao
+        for actor in ACTORS:
+            actor_param = actor["initiate"]()
+            actor["acting_params"] = actor_param
 
-        iniciado = True
+        deployed = True
     except Exception as e:
         print(f"erro iniciando o assistente: {str(e)}")
 
-    return iniciado, reconhecedor, palavras_de_parada, nome_do_assistente, acoes
+    return deployed, recognizer, stopping_words, assistant_name, actions
 
 # realiza a captura da fala do usuario
-def escutar_fala(reconhecedor):
-    tem_fala, fala = False, None
+def listen_line(recognizer):
+    is_speaking, line = False, None
 
-    with sr.Microphone() as fonte_de_audio:
+    with sr.Microphone() as audio_source:
         try:
-            reconhecedor.adjust_for_ambient_noise(fonte_de_audio)
+            recognizer.adjust_for_ambient_noise(audio_source)
 
             print("fale alguma coisa...")
-            fala = reconhecedor.listen(fonte_de_audio, timeout = TEMPO_DE_ESCUTA, phrase_time_limit = TEMPO_DE_ESCUTA)
+            line = recognizer.listen(audio_source, timeout=LITENING_TIME, phrase_time_limit=LITENING_TIME)
 
-            tem_fala = True
+            is_speaking = True
         except Exception as e:
             print(f"erro escutando fala: {str(e)}")
 
-    return tem_fala, fala
+    return is_speaking, line
 
 # traduz o audio da fala para uma string
-def transcrever_fala(reconhecedor, fala):
-    tem_transcricao, transcricao = False, None
+def write_line(recognizer, line):
+    is_written, transcription = False, None
 
     try:
-        transcricao = reconhecedor.recognize_google(fala, language=IDIOMA_FALA)
-        transcricao = transcricao.lower()
+        transcription = recognizer.recognize_google(line, language=DEFAULT_LANGUAGE)
+        transcription = transcription.lower()
         
-        tem_transcricao = True
+        is_written = True
     except Exception as e:
         print(f"erro transcrevendo fala: {str(e)}")
 
-    return tem_transcricao, transcricao
-
-# 2. realiza o processamento de linguagem natural
+    return is_written, transcription
 
 # obtem tokens a partir da transcricao da fala
-def obter_tokens(transcricao):
-    return word_tokenize(transcricao)
+def get_tokens(transcription):
+    return word_tokenize(transcription)
 
 # elimina as palavras de parada
-def eliminar_palavras_de_parada(tokens, palavras_de_parada):
-    tokens_filtrados = []
-
+def remove_stopping_words(tokens, stopping_words):
+    filtered_tokens = []
     for token in tokens:
-        if token not in palavras_de_parada:
-            tokens_filtrados.append(token)
-
-    return tokens_filtrados
-
-# 3. validacao e execucao de comando do assistente
+        # Ignorar os caracteres 'r' e '$'
+        if token.lower() not in ['r', '$'] and token not in stopping_words:
+            filtered_tokens.append(token)
+    return filtered_tokens
 
 # valida o comando de acordo com o especificado no arquivo de configuracao
-def validar_comando(tokens, nome_do_assistente, acoes):
-    valido, acao, objeto = False, None, None
+def validate_command(tokens, assistant_name, actions):
+    is_valid, action, params = False, None, []
 
-    # exemplo: joana ligar lampada
-    if len(tokens) >= 3:
-        if tokens[0] == nome_do_assistente:
-            acao = tokens[1]
-            objeto = tokens[2]
+    if len(tokens) >= 3 and tokens[0] == assistant_name:
+        action = tokens[1]
+        params = tokens[2:]
 
-            for acao_prevista in acoes:
-                if acao == acao_prevista["nome"]:
-                    if objeto in acao_prevista["objetos"]:
-                        valido = True
+        for anticipated_action in actions:
+            if action == anticipated_action["name"]:
+                parametros_esperados = anticipated_action["params"]
 
-                        break
+                if params[0] in parametros_esperados:  # Verificar se o primeiro parâmetro está contido nos parâmetros esperados
+                    is_valid = True
+                    break
 
-    return valido, acao, objeto
+    return is_valid, action, params
 
 # executa o comando validado
-def executar_comando(acao, objeto):
-    print(f"executando a ação {acao} sobre {objeto}")
+def run_command(action, params):
+    print(f"executando a ação {action} com os parâmetros {params}")
 
-    for atuador in ATUADORES:
-        parametro_de_atuacao = atuador["parametro_de_atuacao"]
-        atuacao = atuador["atuar"]
+    for actor in ACTORS:
+        acting_params = actor["acting_params"]
+        acting = actor["acting"]
 
-        processo = Thread(target=atuacao, args=[acao, objeto, parametro_de_atuacao])
-        processo.start()
-
+        process = Thread(target=acting, args=[action, params, acting_params])
+        process.start()
 
 # executando todos os passos em conjunto
 if __name__ == "__main__":
-    iniciado, reconhecedor, palavras_de_parada, nome_do_assistente, acoes = iniciar()
+    deployed, recognizer, stopping_words, assistant_name, actions = initiate()
 
-    if iniciado:
+    if deployed:
         while True:
-            tem_fala, fala = escutar_fala(reconhecedor)
-            if tem_fala:
-                tem_transcricao, transcricao = transcrever_fala(reconhecedor, fala)
-                if tem_transcricao:
-                    print(f"usuário falou: {transcricao}")
+            is_speaking, line = listen_line(recognizer)
+            if is_speaking:
+                is_written, transcription = write_line(recognizer, line)
+                if is_written:
+                    print(f"usuário falou: {transcription}")
 
-                    tokens = obter_tokens(transcricao)
-                    tokens = eliminar_palavras_de_parada(tokens, palavras_de_parada)
-
-                    valido, acao, objeto = validar_comando(tokens, nome_do_assistente, acoes)
-                    if valido:
-                        executar_comando(acao, objeto)
+                    tokens = get_tokens(transcription)
+                    tokens = remove_stopping_words(tokens, stopping_words)
+                    
+                    valid, action, params = validate_command(tokens, assistant_name, actions)
+                    if valid:
+                        run_command(action, params)
                     else:
                         print("comando inválido, por favor, repita")

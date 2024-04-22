@@ -1,37 +1,21 @@
 {
-  "nome": "joana",
-  "acoes": [
+  "name": "assistente",
+  "actions": [
     {
-      "nome": "ligar",
-      "objetos": ["lâmpada", "televisão", "ar-condicionado"]
+      "name": "registrar",
+      "params": ["despesa"]
     },
     {
-      "nome": "desligar",
-      "objetos": ["lâmpada", "televisão", "ar-condicionado"]
+      "name": "verificar",
+      "params": ["saldo"]
     },
     {
-      "nome": "acender",
-      "objetos": ["lâmpada"]
+      "name": "definir",
+      "params": ["orçamento"]
     },
     {
-      "nome": "apagar",
-      "objetos": ["lâmpada"]
-    },
-    {
-      "nome": "aumentar",
-      "objetos": ["luminosidade", "volume", "temperatura"]
-    },
-    {
-      "nome": "diminuir",
-      "objetos": ["luminosidade", "volume", "temperatura"]
-    },
-    {
-      "nome": "tocar",
-      "objetos": ["música"]
-    },
-    {
-      "nome": "parar",
-      "objetos": ["música"]
+      "name": "visualizar",
+      "params": ["relatório"]
     }
   ]
 }

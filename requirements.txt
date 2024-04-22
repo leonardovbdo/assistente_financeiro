@@ -1,6 +1,4 @@
-pyaudio
 SpeechRecognition
-PySerial
-PyGame
-regex
 nltk
+openpyxl
+setuptools
