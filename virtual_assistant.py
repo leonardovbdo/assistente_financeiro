@@ -65,6 +65,21 @@ def listen_line(recognizer):
 
     return is_speaking, line
 
+# responsável por elaborar o audio respectivo para teste
+def process_test_audio(audio, recognizer):
+    is_written = False
+
+    with sr.AudioFile(audio) as fonte_de_audio:
+        fala = recognizer.listen(fonte_de_audio)
+        try:
+            transcription = recognizer.recognize_google(
+                fala, language=IDIOMA_FALA)
+            is_written = True
+        except Exception as e:
+            print(f"erro processando audio: {str(e)}")
+
+    return is_written, transcription.lower()
+
 # traduz o audio da fala para uma string
 def write_line(recognizer, line):
     is_written, transcription = False, None
