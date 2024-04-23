@@ -78,7 +78,7 @@ def view_report(sheet="financas.xlsx"):
 
 # Função para atuar sobre as finanças com base na ação solicitada
 def act_on_finance(action, params, _):
-    if action == "registrar" and 'despesa' in params: 
+    if action == "registrar" and ('despesa' in params or 'despesas' in params): 
         value = float(params[1])  # Converter para float
         record_expense(value, params[2])
     elif action == "verificar" and 'saldo' in params: 

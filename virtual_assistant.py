@@ -73,7 +73,7 @@ def process_test_audio(audio, recognizer):
         fala = recognizer.listen(fonte_de_audio)
         try:
             transcription = recognizer.recognize_google(
-                fala, language=IDIOMA_FALA)
+                fala, language=DEFAULT_LANGUAGE)
             is_written = True
         except Exception as e:
             print(f"erro processando audio: {str(e)}")

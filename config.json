@@ -3,7 +3,7 @@
   "actions": [
     {
       "name": "registrar",
-      "params": ["despesa"]
+      "params": ["despesa", "despesas"]
     },
     {
       "name": "verificar",

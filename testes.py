@@ -13,7 +13,7 @@ class TesteNomeAssistente(unittest.TestCase):
     def setUp(self):
         self.deployed, self.recognizer, _, self.assistant_name, _ = initiate()
 
-    def recognize_assistant_name_01(self):
+    def testar_recognize_assistant_name_01(self):
         is_written, transcription = process_test_audio(CHAMANDO_ASSISTENTE, self.recognizer)
 
         self.assertTrue(is_written)
@@ -22,7 +22,7 @@ class TesteNomeAssistente(unittest.TestCase):
         self.assertIsNotNone(tokens)
         self.assertEqual(tokens[0], self.assistant_name)
 
-    def not_recognize_assistant_name_02(self):
+    def testar_not_recognize_assistant_name_02(self):
         is_written, transcription = process_test_audio(CHAMANDO_JARVIS, self.recognizer)
 
         self.assertTrue(is_written)
